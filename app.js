@@ -27,6 +27,10 @@ const DEFAULT_WAREHOUSES = [
 
 const SETTINGS_PASSWORD = '2005';
 const EMERGENCY_BACKUP_KEY = 'inventory_emergency_backup';
+const APP_VERSION = '2.9.5';
+const DEFAULT_THEME = 'light';
+const DEFAULT_PRIMARY_COLOR = '#2e5b52';
+const DEFAULT_ACCENT_COLOR = '#d6a24f';
 let deferredInstallPrompt = null;
 
 // ===== INIT DB =====
@@ -154,7 +158,9 @@ let state = {
     fontFamily: 'Cairo',
     autoCarryForward: true,
     showZeroItems: true,
-    theme: 'light'
+    theme: DEFAULT_THEME,
+    primaryColor: DEFAULT_PRIMARY_COLOR,
+    accentColor: DEFAULT_ACCENT_COLOR
   },
   settingsUnlocked: false,
   inventoryEntryData: [],
@@ -168,6 +174,113 @@ let state = {
 function icon(name, className = '') {
   const cls = ['ui-icon', className].filter(Boolean).join(' ');
   return `<svg class="${cls}" aria-hidden="true"><use href="icons.svg#icon-${name}"></use></svg>`;
+}
+
+function normalizeTheme(theme) {
+  return theme === 'dark' ? 'dark' : DEFAULT_THEME;
+}
+
+function normalizeHexColor(value, fallback) {
+  if (typeof value !== 'string') return fallback;
+  const normalized = value.trim();
+  return /^#[0-9a-fA-F]{6}$/.test(normalized) ? normalized.toLowerCase() : fallback;
+}
+
+function hexToRgb(hex) {
+  const normalized = normalizeHexColor(hex, '#000000').slice(1);
+  return {
+    r: parseInt(normalized.slice(0, 2), 16),
+    g: parseInt(normalized.slice(2, 4), 16),
+    b: parseInt(normalized.slice(4, 6), 16)
+  };
+}
+
+function clampChannel(value) {
+  return Math.max(0, Math.min(255, Math.round(value)));
+}
+
+function mixHex(baseHex, targetHex, weight = 0.5) {
+  const start = hexToRgb(baseHex);
+  const end = hexToRgb(targetHex);
+  const mix = (from, to) => clampChannel(from + (to - from) * weight);
+  return `#${[mix(start.r, end.r), mix(start.g, end.g), mix(start.b, end.b)]
+    .map((channel) => channel.toString(16).padStart(2, '0'))
+    .join('')}`;
+}
+
+function rgbaFromHex(hex, alpha = 1) {
+  const { r, g, b } = hexToRgb(hex);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+function getReadableTextColor(hex) {
+  const { r, g, b } = hexToRgb(hex);
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return luminance > 0.62 ? '#2a1d0a' : '#ffffff';
+}
+
+function updateThemeMetaColor() {
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (!meta) return;
+  const styles = getComputedStyle(document.documentElement);
+  const themeColor = (state.settings.theme === 'dark'
+    ? styles.getPropertyValue('--sidebar-bg')
+    : styles.getPropertyValue('--primary-mid')).trim();
+  meta.setAttribute('content', themeColor || DEFAULT_PRIMARY_COLOR);
+}
+
+function applyThemeColors() {
+  const root = document.documentElement;
+  const theme = normalizeTheme(state.settings.theme);
+  const primary = normalizeHexColor(state.settings.primaryColor, DEFAULT_PRIMARY_COLOR);
+  const accent = normalizeHexColor(state.settings.accentColor, DEFAULT_ACCENT_COLOR);
+
+  state.settings.theme = theme;
+  state.settings.primaryColor = primary;
+  state.settings.accentColor = accent;
+
+  root.style.setProperty('--primary', primary);
+  root.style.setProperty('--primary-mid', mixHex(primary, theme === 'dark' ? '#ffffff' : '#000000', theme === 'dark' ? 0.12 : 0.18));
+  root.style.setProperty('--primary-light', mixHex(primary, '#ffffff', theme === 'dark' ? 0.20 : 0.14));
+  root.style.setProperty('--primary-pale', rgbaFromHex(primary, theme === 'dark' ? 0.18 : 0.14));
+  root.style.setProperty('--accent', accent);
+  root.style.setProperty('--accent-light', rgbaFromHex(accent, theme === 'dark' ? 0.22 : 0.18));
+  root.style.setProperty('--accent-ink', getReadableTextColor(accent));
+  root.style.setProperty('--focus-ring', rgbaFromHex(primary, theme === 'dark' ? 0.28 : 0.18));
+  root.style.setProperty('--hero-glow', rgbaFromHex(accent, theme === 'dark' ? 0.24 : 0.18));
+  root.style.setProperty('--sidebar-active', primary);
+  updateThemeMetaColor();
+}
+
+function previewAppearanceSettings() {
+  const fontSizeInput = document.getElementById('setting-font-size');
+  const fontFamilyInput = document.getElementById('setting-font-family');
+  const themeInput = document.getElementById('setting-theme');
+  const primaryColorInput = document.getElementById('setting-primary-color');
+  const accentColorInput = document.getElementById('setting-accent-color');
+
+  if (fontSizeInput) {
+    state.settings.fontSize = parseInt(fontSizeInput.value, 10) || 15;
+    document.getElementById('setting-font-size-display').textContent = `${state.settings.fontSize}px`;
+  }
+
+  if (fontFamilyInput) {
+    state.settings.fontFamily = fontFamilyInput.value || 'Cairo';
+  }
+
+  if (themeInput) {
+    state.settings.theme = normalizeTheme(themeInput.value);
+  }
+
+  if (primaryColorInput) {
+    state.settings.primaryColor = normalizeHexColor(primaryColorInput.value, DEFAULT_PRIMARY_COLOR);
+  }
+
+  if (accentColorInput) {
+    state.settings.accentColor = normalizeHexColor(accentColorInput.value, DEFAULT_ACCENT_COLOR);
+  }
+
+  applySettings();
 }
 
 function parseDateValue(dateStr) {
@@ -1785,7 +1898,7 @@ async function buildSystemBackupPayload(reason = 'manual_export') {
   return {
     meta: {
       app: 'Inventory Manager',
-      version: '1.1.0',
+      version: APP_VERSION,
       schemaVersion: 1,
       exportedAt: new Date().toISOString(),
       reason
@@ -1979,6 +2092,10 @@ async function loadSettings() {
     state.settings = { ...state.settings, ...s.value };
   }
 
+  state.settings.theme = normalizeTheme(state.settings.theme);
+  state.settings.primaryColor = normalizeHexColor(state.settings.primaryColor, DEFAULT_PRIMARY_COLOR);
+  state.settings.accentColor = normalizeHexColor(state.settings.accentColor, DEFAULT_ACCENT_COLOR);
+
   syncSettingsAccessUI();
   applySettings();
   if (!state.settingsUnlocked) return;
@@ -1986,7 +2103,9 @@ async function loadSettings() {
   document.getElementById('setting-font-size').value = state.settings.fontSize;
   document.getElementById('setting-font-size-display').textContent = state.settings.fontSize + 'px';
   document.getElementById('setting-font-family').value = state.settings.fontFamily;
-  document.getElementById('setting-theme').value = state.settings.theme || 'light';
+  document.getElementById('setting-theme').value = state.settings.theme || DEFAULT_THEME;
+  document.getElementById('setting-primary-color').value = state.settings.primaryColor;
+  document.getElementById('setting-accent-color').value = state.settings.accentColor;
   document.getElementById('setting-auto-carry').classList.toggle('on', state.settings.autoCarryForward);
   document.getElementById('setting-show-zero').classList.toggle('on', state.settings.showZeroItems);
 
@@ -1994,11 +2113,16 @@ async function loadSettings() {
 }
 
 function applySettings() {
+  state.settings.theme = normalizeTheme(state.settings.theme);
+  state.settings.primaryColor = normalizeHexColor(state.settings.primaryColor, DEFAULT_PRIMARY_COLOR);
+  state.settings.accentColor = normalizeHexColor(state.settings.accentColor, DEFAULT_ACCENT_COLOR);
+
   const fontStack = `'${state.settings.fontFamily}', 'Cairo', sans-serif`;
   document.documentElement.style.setProperty('--font', fontStack);
   document.documentElement.style.setProperty('--font-main', fontStack);
   document.documentElement.style.fontSize = `${state.settings.fontSize}px`;
-  document.documentElement.dataset.theme = state.settings.theme || 'light';
+  document.documentElement.dataset.theme = state.settings.theme || DEFAULT_THEME;
+  applyThemeColors();
   updateCurrentUserAvatar();
 }
 
@@ -2007,7 +2131,9 @@ async function saveSettings() {
 
   state.settings.fontSize = parseInt(document.getElementById('setting-font-size').value, 10) || 15;
   state.settings.fontFamily = document.getElementById('setting-font-family').value;
-  state.settings.theme = document.getElementById('setting-theme').value || 'light';
+  state.settings.theme = normalizeTheme(document.getElementById('setting-theme').value);
+  state.settings.primaryColor = normalizeHexColor(document.getElementById('setting-primary-color').value, DEFAULT_PRIMARY_COLOR);
+  state.settings.accentColor = normalizeHexColor(document.getElementById('setting-accent-color').value, DEFAULT_ACCENT_COLOR);
   await dbPut(STORES.SETTINGS, { key: 'main', value: state.settings });
   applySettings();
   showToast('تم حفظ الإعدادات');
@@ -2346,10 +2472,13 @@ async function legacyMain() {
   // Font size range
   const fontRange = document.getElementById('setting-font-size');
   if (fontRange) {
-    fontRange.addEventListener('input', function() {
-      document.getElementById('setting-font-size-display').textContent = this.value + 'px';
-    });
+    fontRange.addEventListener('input', previewAppearanceSettings);
   }
+
+  document.getElementById('setting-font-family')?.addEventListener('change', previewAppearanceSettings);
+  document.getElementById('setting-theme')?.addEventListener('change', previewAppearanceSettings);
+  document.getElementById('setting-primary-color')?.addEventListener('input', previewAppearanceSettings);
+  document.getElementById('setting-accent-color')?.addEventListener('input', previewAppearanceSettings);
 
   // Toggle switches
   document.getElementById('setting-auto-carry')?.addEventListener('click', function() {

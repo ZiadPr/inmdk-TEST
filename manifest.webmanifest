@@ -1,14 +1,14 @@
 {
   "name": "نظام إدارة المخزون",
   "short_name": "المخزون",
-  "description": "نظام إدارة المخزون والجرد اليومي مع دعم العمل دون اتصال والتثبيت كتطبيق.",
+  "description": "نظام إدارة المخزون والجرد اليومي - الإصدار الرسمي 2.9.5 - مع دعم العمل دون اتصال والتثبيت كتطبيق.",
   "lang": "ar",
   "dir": "rtl",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#edf1ed",
-  "theme_color": "#1b4332",
+  "background_color": "#f3f5f2",
+  "theme_color": "#2e5b52",
   "orientation": "portrait-primary",
   "icons": [
     {

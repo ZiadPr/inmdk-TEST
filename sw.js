@@ -1,4 +1,4 @@
-const CACHE_NAME = 'inventory-manager-v1-1-0';
+const CACHE_NAME = 'inventory-manager-v2-9-5';
 const APP_SHELL = [
   './',
   './index.html',

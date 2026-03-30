@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#1b4332" />
+  <meta name="theme-color" content="#2e5b52" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-title" content="المخزون" />
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="app-icon.svg" type="image/svg+xml" />
-  <title>نظام إدارة المخزون | Inventory Manager v1.1</title>
+  <title>نظام إدارة المخزون | Inventory Manager v2.9.5</title>
   <link rel="stylesheet" href="style.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -37,7 +37,7 @@
       </div>
       <div class="logo-text">
         <h1>نظام المخزون</h1>
-        <span>Inventory Manager v1.1</span>
+        <span>Inventory Manager v2.9.5</span>
       </div>
     </div>
 
@@ -613,14 +613,40 @@
               <div class="setting-item">
                 <div>
                   <div class="setting-label">ثيم البرنامج</div>
-                  <div class="setting-desc">تحسين خفيف لشكل الواجهة بدون تغيير ضخم على التصميم</div>
+                  <div class="setting-desc">اختر بين الثيم النهاري المريح أو الثيم الليلي الهادئ حسب بيئة العمل</div>
                 </div>
                 <div class="setting-control">
-                  <select id="setting-theme" style="max-width:160px;">
-                    <option value="light">الافتراضي</option>
-                    <option value="forest">أخضر احترافي</option>
-                    <option value="sand">رملي هادئ</option>
+                  <select id="setting-theme" style="max-width:170px;">
+                    <option value="light">نهاري مريح</option>
+                    <option value="dark">ليلي هادئ</option>
                   </select>
+                </div>
+              </div>
+              <div class="setting-item setting-item-stack">
+                <div>
+                  <div class="setting-label">تخصيص ألوان البرنامج</div>
+                  <div class="setting-desc">تحكم في اللون الرئيسي ولون التمييز مع الحفاظ على مظهر عصري ومريح للعين</div>
+                </div>
+                <div class="palette-customizer">
+                  <label class="color-setting" for="setting-primary-color">
+                    <span>اللون الرئيسي</span>
+                    <input type="color" id="setting-primary-color" value="#2e5b52" />
+                  </label>
+                  <label class="color-setting" for="setting-accent-color">
+                    <span>لون التمييز</span>
+                    <input type="color" id="setting-accent-color" value="#d6a24f" />
+                  </label>
+                </div>
+              </div>
+              <div class="theme-preview" aria-hidden="true">
+                <div class="theme-preview-sidebar"></div>
+                <div class="theme-preview-surface">
+                  <div class="theme-preview-toolbar"></div>
+                  <div class="theme-preview-body">
+                    <span class="theme-preview-chip primary">رئيسي</span>
+                    <span class="theme-preview-chip accent">تمييز</span>
+                    <span class="theme-preview-chip neutral">سطح</span>
+                  </div>
                 </div>
               </div>
               <div class="setting-item">
@@ -718,8 +744,14 @@
             <svg class="ui-icon" aria-hidden="true"><use href="icons.svg#icon-box"></use></svg>
             <span>نظام إدارة المخزون</span>
           </div>
-          <p>نظام متكامل لإدارة الجرد اليومي وأذونات الصرف والتقارير مع دعم التثبيت كتطبيق والعمل دون اتصال.</p>
-          <div class="version-badge">الإصدار 1.1.0 - نسخة تشغيلية محسنة</div>
+          <p>منصة تشغيلية حديثة لإدارة الجرد اليومي وأذونات الصرف والتقارير، بواجهة عصرية قابلة للتخصيص ودعم كامل للتثبيت والعمل دون اتصال.</p>
+          <div class="version-badge">الإصدار الرسمي 2.9.5</div>
+          <div class="about-quick-stats">
+            <div class="about-quick-stat">ثيم نهاري وليلي</div>
+            <div class="about-quick-stat">ألوان قابلة للتخصيص</div>
+            <div class="about-quick-stat">تثبيت كتطبيق PWA</div>
+            <div class="about-quick-stat">تشغيل أوف لاين</div>
+          </div>
           <div class="about-hero-actions">
             <button class="btn btn-accent install-btn" id="install-app-btn" type="button" hidden>
               <svg class="ui-icon" aria-hidden="true"><use href="icons.svg#icon-install"></use></svg>
@@ -731,18 +763,54 @@
         <div class="card">
           <div class="card-header"><h3>عن النظام</h3></div>
           <div class="card-body">
-            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;">
-              <div>
+            <div class="about-grid">
+              <div class="about-panel">
+                <div class="about-panel-title">الهوية الرسمية</div>
                 <div class="setting-item"><div class="setting-label">اسم البرنامج</div><div style="font-weight:700;color:var(--primary);">نظام إدارة المخزون</div></div>
-                <div class="setting-item"><div class="setting-label">الإصدار</div><div style="font-weight:700;">1.1.0</div></div>
+                <div class="setting-item"><div class="setting-label">الإصدار</div><div style="font-weight:700;">2.9.5</div></div>
                 <div class="setting-item"><div class="setting-label">قاعدة البيانات</div><div style="font-weight:700;">IndexedDB (محلية)</div></div>
+                <div class="setting-item"><div class="setting-label">وضع التشغيل</div><div style="font-weight:700;">ويب + تطبيق مثبت + أوف لاين</div></div>
+              </div>
+              <div class="about-panel">
+                <div class="about-panel-title">فريق التطوير</div>
                 <div class="setting-item"><div class="setting-label">فريق التطوير</div><div style="font-weight:700;">زياد، يحيى، زكريا، أحمد</div></div>
                 <div class="setting-item"><div class="setting-label">الشراكة</div><div style="font-weight:700;">وفريق من منظمة البرمجيات مفتوح المصدر</div></div>
+                <div class="setting-item"><div class="setting-label">هدف الإصدار</div><div style="font-weight:700;">تحسين التجربة اليومية ورفع جاهزية التشغيل</div></div>
               </div>
-              <div>
-                <p style="font-size:0.88rem;color:var(--text-secondary);line-height:2;border-right:3px solid var(--accent);padding-right:14px;">
-                  هذا النظام مصمم لإدارة جرد المخازن اليومي مع تحسينات تشغيلية عملية: قفل الإعدادات بكلمة مرور، استخراج شهري للجرد، حماية نسخة الهاتف عبر نقطة إنقاذ محلية، وطباعة أكثر استقراراً. كما يدعم التثبيت كتطبيق PWA والعمل دون اتصال بعد أول تحميل ناجح.
+              <div class="about-panel">
+                <div class="about-panel-title">نبذة مطورة</div>
+                <p class="about-copy">
+                  الإصدار الرسمي 2.9.5 يركز على تقديم واجهة أكثر راحة وحداثة، مع تخصيص لوني مباشر، وثيم ليلي ونهاري، وتحسينات تشغيلية تحافظ على بساطة الاستخدام من غير تغييرات ضخمة على سير العمل المعتاد.
                 </p>
+                <div class="about-note-list">
+                  <div class="about-note">قفل الإعدادات بكلمة مرور المطور للحفاظ على بيئة العمل.</div>
+                  <div class="about-note">نسخ احتياطي، استعادة، ونقطة إنقاذ لحماية نسخة الجهاز.</div>
+                  <div class="about-note">طباعة أكثر استقرارًا وتقارير شهرية للجرد.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><h3>ما الجديد في 2.9.5</h3></div>
+          <div class="card-body">
+            <div class="release-grid">
+              <div class="release-card">
+                <div class="release-card-title">واجهة أحدث</div>
+                <p>تحسين ملمس البطاقات والهيدر والخلفيات لتكون أكثر عصرية مع ألوان مريحة للعين أثناء الاستخدام الطويل.</p>
+              </div>
+              <div class="release-card">
+                <div class="release-card-title">ثيمات وتخصيص</div>
+                <p>إضافة ثيم نهاري وثيم ليلي مع القدرة على اختيار اللون الرئيسي ولون التمييز مباشرة من الإعدادات.</p>
+              </div>
+              <div class="release-card">
+                <div class="release-card-title">عن البرنامج</div>
+                <p>تطوير صفحة "عن البرنامج" لتعرض الهوية الرسمية، الفريق، وأبرز مزايا الإصدار الحالي بشكل أوضح.</p>
+              </div>
+              <div class="release-card">
+                <div class="release-card-title">جاهزية تشغيل</div>
+                <p>استمرار دعم التثبيت كتطبيق، التشغيل دون اتصال، وحماية البيانات بنسخ احتياطية واستعادة مستقرة.</p>
               </div>
             </div>
           </div>
