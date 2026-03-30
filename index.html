@@ -128,7 +128,6 @@
           </div>
           <div class="page-actions">
             <button class="btn btn-accent" onclick="navigate('inventory')"><svg class="ui-icon" aria-hidden="true"><use href="icons.svg#icon-clipboard"></use></svg> إدخال جرد جديد</button>
-            <button class="btn btn-outline" onclick="seedDemoData()"><svg class="ui-icon" aria-hidden="true"><use href="icons.svg#icon-sparkles"></use></svg> بيانات تجريبية</button>
           </div>
         </div>
 
@@ -234,6 +233,8 @@
             <button class="btn btn-outline" onclick="loadInventoryEntry()"><svg class="ui-icon" aria-hidden="true"><use href="icons.svg#icon-refresh"></use></svg> تحديث</button>
           </div>
         </div>
+
+        <div class="carry-forward-banner hidden" id="carry-forward-banner"></div>
 
         <div class="card">
           <div class="card-header"><h3>بيانات الجرد</h3></div>
@@ -688,6 +689,19 @@
           </div>
 
           <div class="card" style="margin:0;">
+            <div class="card-header"><h3>أدوات التشغيل</h3></div>
+            <div class="card-body">
+              <div class="setting-item">
+                <div>
+                  <div class="setting-label">البيانات التجريبية</div>
+                  <div class="setting-desc">إضافة أصناف ومستخدمين تجريبيين للاختبار الداخلي فقط بدون عرض الزر في الشاشة الرئيسية</div>
+                </div>
+                <button class="btn btn-outline" type="button" onclick="seedDemoData()"><svg class="ui-icon" aria-hidden="true"><use href="icons.svg#icon-sparkles"></use></svg> إضافة بيانات تجريبية</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="card" style="margin:0;">
             <div class="card-header"><h3>النسخ الاحتياطي والاستعادة</h3></div>
             <div class="card-body">
               <div class="setting-item">
@@ -773,19 +787,41 @@
               </div>
               <div class="about-panel">
                 <div class="about-panel-title">فريق التطوير</div>
-                <div class="setting-item"><div class="setting-label">فريق التطوير</div><div style="font-weight:700;">زياد، يحيى، زكريا، أحمد</div></div>
-                <div class="setting-item"><div class="setting-label">الشراكة</div><div style="font-weight:700;">وفريق من منظمة البرمجيات مفتوح المصدر</div></div>
-                <div class="setting-item"><div class="setting-label">هدف الإصدار</div><div style="font-weight:700;">تحسين التجربة اليومية ورفع جاهزية التشغيل</div></div>
+                <div class="about-brand-stack">
+                  <div class="about-brand-card">
+                    <div class="about-link-label">فريق التطوير الأساسي</div>
+                    <div class="about-brand-name">ZIADPWA</div>
+                  </div>
+                  <div class="about-brand-card">
+                    <div class="about-link-label">هدف الإصدار</div>
+                    <div class="about-brand-copy">تحسين التجربة اليومية ورفع جاهزية التشغيل مع الحفاظ على أسلوب العمل الحالي بدون تغييرات مزعجة.</div>
+                  </div>
+                </div>
+              </div>
+              <div class="about-panel">
+                <div class="about-panel-title">الشراكة والترخيص</div>
+                <div class="about-link-stack">
+                  <a class="about-link-card" href="https://opensource.com/" target="_blank" rel="noopener noreferrer">
+                    <span class="about-link-label">الشراكة المجتمعية</span>
+                    <span class="about-link-value">opensource.com</span>
+                    <span class="about-link-copy">بالشراكة مع مجتمع مفتوح المصدر ومع فريق من منظمة البرمجيات مفتوحة المصدر.</span>
+                  </a>
+                  <a class="about-link-card" href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener noreferrer">
+                    <span class="about-link-label">الترخيص</span>
+                    <span class="about-link-value">CC BY-SA 4.0</span>
+                    <span class="about-link-copy">المحتوى والعناصر التوثيقية المعتمدة داخل صفحة التعريف تُعرض تحت ترخيص Creative Commons Attribution-ShareAlike 4.0.</span>
+                  </a>
+                </div>
               </div>
               <div class="about-panel">
                 <div class="about-panel-title">نبذة مطورة</div>
                 <p class="about-copy">
-                  الإصدار الرسمي 2.9.5 يركز على تقديم واجهة أكثر راحة وحداثة، مع تخصيص لوني مباشر، وثيم ليلي ونهاري، وتحسينات تشغيلية تحافظ على بساطة الاستخدام من غير تغييرات ضخمة على سير العمل المعتاد.
+                  الإصدار الرسمي 2.9.5 يركز على تقديم واجهة أكثر راحة وحداثة، مع تخصيص لوني مباشر، وثيم ليلي ونهاري، وتحسينات تشغيلية تحافظ على بساطة الاستخدام من غير تغييرات ضخمة على سير العمل المعتاد. تقود التطوير الأساسي هوية <strong>ZIADPWA</strong> بالشراكة مع <strong>opensource.com</strong> ومع فريق من منظمة البرمجيات مفتوحة المصدر، ضمن عرض تعريفي منظم وواضح داخل النظام.
                 </p>
                 <div class="about-note-list">
                   <div class="about-note">قفل الإعدادات بكلمة مرور المطور للحفاظ على بيئة العمل.</div>
                   <div class="about-note">نسخ احتياطي، استعادة، ونقطة إنقاذ لحماية نسخة الجهاز.</div>
-                  <div class="about-note">طباعة أكثر استقرارًا وتقارير شهرية للجرد.</div>
+                  <div class="about-note">طباعة أكثر استقرارًا وتقارير شهرية للجرد مع ترحيل تلقائي لرصيد أول الوردية.</div>
                 </div>
               </div>
             </div>

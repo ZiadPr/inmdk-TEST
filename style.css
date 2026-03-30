@@ -595,6 +595,24 @@ table input[type="text"] {
 .archive-stat-val { font-size: 20px; font-weight: 800; line-height: 1; }
 .archive-stat-lbl { font-size: 12px; color: var(--text-muted); }
 
+.carry-forward-banner {
+  margin-bottom: 16px;
+  padding: 14px 16px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-light);
+  background:
+    linear-gradient(180deg, var(--primary-pale), transparent),
+    var(--surface);
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.9;
+  box-shadow: var(--shadow-xs);
+}
+
+.carry-forward-banner strong {
+  color: var(--primary);
+}
+
 .settings-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -1434,6 +1452,57 @@ input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; marg
   border: 1px solid var(--border-light);
   color: var(--text-muted);
   font-size: 13px;
+}
+
+.about-brand-stack,
+.about-link-stack {
+  display: grid;
+  gap: 12px;
+}
+
+.about-brand-card,
+.about-link-card {
+  display: grid;
+  gap: 6px;
+  padding: 14px 15px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-light);
+  background: var(--surface);
+}
+
+.about-link-card {
+  color: inherit;
+}
+
+.about-brand-name,
+.about-link-value {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--primary);
+  letter-spacing: .02em;
+}
+
+.about-brand-copy,
+.about-link-copy {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.8;
+}
+
+.about-link-card {
+  transition: transform var(--t), box-shadow var(--t), border-color var(--t);
+}
+
+.about-link-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+  border-color: var(--primary-pale);
+}
+
+.about-link-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
 }
 
 .release-grid {

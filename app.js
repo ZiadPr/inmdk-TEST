@@ -818,19 +818,53 @@ async function getDisbursementTotalsByDate(date) {
   return totals;
 }
 
-function getLatestInventoryRecordForCarry(records, excludedId) {
+function getCarryForwardSourceRecord(records, selectedDate, excludedId) {
+  const selectedDateSort = getDateSortValue(selectedDate);
+  if (!selectedDateSort) return null;
+
   return records
-    .filter((rec) => rec.id !== excludedId)
+    .filter((rec) => rec.id !== excludedId && getDateSortValue(rec.date) < selectedDateSort)
     .sort((a, b) => {
+      const dateDiff = getDateSortValue(b.date) - getDateSortValue(a.date);
+      if (dateDiff !== 0) return dateDiff;
+
       const aTime = new Date(a.createdAt || 0).getTime();
       const bTime = new Date(b.createdAt || 0).getTime();
       if (aTime !== bTime) return bTime - aTime;
+
       return Number(b.id || 0) - Number(a.id || 0);
     })[0] || null;
 }
 
 function getRecordByDate(records, date) {
   return records.find((rec) => rec.date === date) || null;
+}
+
+function updateCarryForwardBanner({ sourceRecord, selectedDate, existingRecord }) {
+  const banner = document.getElementById('carry-forward-banner');
+  if (!banner) return;
+
+  if (!state.settings.autoCarryForward) {
+    banner.classList.add('hidden');
+    banner.innerHTML = '';
+    return;
+  }
+
+  if (existingRecord) {
+    banner.classList.remove('hidden');
+    banner.innerHTML = `تم تحميل الجرد المحفوظ بتاريخ <strong>${formatDate(selectedDate)}</strong>، وتظهر أرصدة أول الوردية كما تم حفظها لهذا اليوم.`;
+    return;
+  }
+
+  if (sourceRecord) {
+    const itemsCount = Array.isArray(sourceRecord.entries) ? sourceRecord.entries.length : 0;
+    banner.classList.remove('hidden');
+    banner.innerHTML = `تم ترحيل <strong>رصيد آخر الوردية</strong> من جرد <strong>${formatDate(sourceRecord.date)}</strong> تلقائياً إلى <strong>رصيد أول الوردية</strong> بتاريخ <strong>${formatDate(selectedDate)}</strong> لعدد <strong>${itemsCount}</strong> صنف.`;
+    return;
+  }
+
+  banner.classList.remove('hidden');
+  banner.innerHTML = `لا يوجد جرد سابق قبل <strong>${formatDate(selectedDate)}</strong>، لذلك يبدأ <strong>رصيد أول الوردية</strong> من الصفر حتى يتم حفظ أول جرد.`;
 }
 
 async function loadInventoryEntry() {
@@ -842,18 +876,20 @@ async function loadInventoryEntry() {
   if (!dateInput.value) dateInput.value = today();
   const selectedDate = dateInput.value;
 
+  const allRecords = await dbGetAll(STORES.INVENTORY);
+  const existingRecord = getRecordByDate(allRecords, selectedDate);
+  const previousRecord = state.settings.autoCarryForward
+    ? getCarryForwardSourceRecord(allRecords, selectedDate, existingRecord?.id)
+    : null;
+
   // Load users
   const users = await dbGetAll(STORES.USERS);
   const userSelect = document.getElementById('inv-user');
   userSelect.innerHTML = `<option value="">-- اختر المستخدم --</option>` +
     users.map(u => `<option value="${u.name}">${u.name}</option>`).join('');
-  if (state.currentUser) userSelect.value = state.currentUser;
+  userSelect.value = existingRecord?.user || state.currentUser || '';
+  document.getElementById('inv-notes').value = existingRecord?.notes || '';
 
-  const allRecords = await dbGetAll(STORES.INVENTORY);
-  const existingRecord = getRecordByDate(allRecords, selectedDate);
-  const previousRecord = state.settings.autoCarryForward
-    ? getLatestInventoryRecordForCarry(allRecords, existingRecord?.id)
-    : null;
   const disbursementTotals = await getDisbursementTotalsByDate(selectedDate);
 
   // Build entry rows
@@ -881,6 +917,12 @@ async function loadInventoryEntry() {
 
   const finalExportDateInput = document.getElementById('final-export-date');
   if (finalExportDateInput) finalExportDateInput.value = selectedDate;
+
+  updateCarryForwardBanner({
+    sourceRecord: previousRecord,
+    selectedDate,
+    existingRecord
+  });
 
   renderInventoryEntryTable();
 }
