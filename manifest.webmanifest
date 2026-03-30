@@ -1,0 +1,21 @@
+{
+  "name": "نظام إدارة المخزون",
+  "short_name": "المخزون",
+  "description": "نظام إدارة المخزون والجرد اليومي مع دعم العمل دون اتصال والتثبيت كتطبيق.",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#edf1ed",
+  "theme_color": "#1b4332",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "./app-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

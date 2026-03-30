@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#1b4332" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="المخزون" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="app-icon.svg" type="image/svg+xml" />
+  <title>نظام إدارة المخزون | Inventory Manager v1.1</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loading-overlay">
+  <div class="spinner"></div>
+  <div class="loading-text">جارٍ تهيئة النظام...</div>
+</div>
+
+<!-- Toast Container -->
+<div id="toast-container"></div>
+
+<!-- ===== APP WRAPPER ===== -->
+<div class="app-wrapper">
+
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">
+        <svg class="ui-icon ui-icon-lg" aria-hidden="true"><use href="icons.svg#icon-box"></use></svg>
+      </div>
+      <div class="logo-text">
+        <h1>نظام المخزون</h1>
+        <span>Inventory Manager v1.1</span>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">القائمة الرئيسية</div>
+      <div class="nav-item active" data-page="dashboard">
+        <span class="icon"><svg class="ui-icon" aria-hidden="true"><use href="icons.svg#icon-home"></use></svg></span> لوحة التحكم
+      </div>
+      <div class="nav-item" data-page="inventory">
+        <span class="icon"><svg class="ui-icon" aria-hidden="true"><use href="icons.svg#icon-clipboard"></use></svg></span> إدخال الجرد اليومي
+      </div>
+      <div class="nav-item" data-page="disbursement">
+        <span class="icon"><svg class="ui-icon" aria-hidden="true"><use href="icons.svg#icon-upload"></use></svg></span> إذن الصرف
+      </div>
+      <div class="nav-item" data-page="archive">
+        <span class="icon"><svg class="ui-icon" aria-hidden="true"><use href="icons.svg#icon-archive"></use></svg></span> الأرشيف والتقارير
+      </div>
+
+      <div class="nav-section-label">الإدارة</div>
+      <div class="nav-item" data-page="items">
+        <span class="icon"><svg class="ui-icon" aria-hidden="true"><use href="icons.svg#icon-tag"></use></svg></span> إدارة الأصناف
+      </div>
+      <div class="nav-item" data-page="settings">
+        <span class="icon"><svg class="ui-icon" aria-hidden="true"><use href="icons.svg#icon-cog"></use></svg></span> الإعدادات
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="nav-item" data-page="about">
+        <span class="icon"><svg class="ui-icon" aria-hidden="true"><use href="icons.svg#icon-info"></use></svg></span> عن البرنامج
+      </div>
+    </div>
+  </aside>
+
+  <!-- ===== MAIN CONTENT ===== -->
+  <div class="main-content">
+
+    <!-- TOP HEADER -->
+    <header class="top-header">
+      <button class="btn btn-icon btn-outline mobile-menu-btn" id="mobile-menu-btn" aria-label="فتح القائمة">
+        <svg class="ui-icon" aria-hidden="true"><use href="icons.svg#icon-menu"></use></svg>
+      </button>
+      <div class="header-title">
+        <span id="header-page-title">لوحة التحكم</span>
+      </div>
+      <div class="header-meta">
+        <div class="header-badge status-badge" id="connectivity-badge">
+          <div class="dot"></div>
+          <span id="connectivity-status-text">جاهز دون اتصال</span>
+        </div>
+        <div class="header-badge">
+          <svg class="ui-icon" aria-hidden="true"><use href="icons.svg#icon-calendar"></use></svg>
+          <div class="dot"></div>
+          <span id="today-date-display"></span>
+        </div>
+        <div class="header-dropdown" id="backup-dropdown">
+          <button class="btn btn-outline btn-sm header-menu-btn" id="backup-menu-btn" type="button" aria-haspopup="true" aria-expanded="false">
+            <svg class="ui-icon" aria-hidden="true"><use href="icons.svg#icon-download"></use></svg>
+            <span>النسخ الاحتياطي</span>
+            <svg class="ui-icon" aria-hidden="true"><use href="icons.svg#icon-chevron-down"></use></svg>
+          </button>
+          <div class="header-dropdown-menu" id="backup-menu">
+            <button class="dropdown-item" id="backup-download-btn" type="button">
+              <svg class="ui-icon" aria-hidden="true"><use href="icons.svg#icon-download"></use></svg>
+              <span>تنزيل نسخة احتياطية</span>
+            </button>
+            <button class="dropdown-item" id="backup-upload-btn" type="button">
+              <svg class="ui-icon" aria-hidden="true"><use href="icons.svg#icon-upload"></use></svg>
+              <span>رفع نسخة احتياطية</span>
+            </button>
+          </div>
+        </div>
+        <div class="user-avatar" title="المستخدم الحالي" id="current-user-avatar">م</div>
+      </div>
+    </header>
+
+    <!-- PAGE CONTENT -->
+    <div class="page-content">
+
+      <!-- =========================================
+           PAGE: DASHBOARD
+           ========================================= -->
+      <div class="page active" id="page-dashboard">
+        <div class="page-header">
+          <div class="page-header-text">
+            <h2>لوحة التحكم</h2>
+            <p>نظرة عامة على حالة المخزون اليومي</p>
+          </div>
+          <div class="page-actions">
+            <button class="btn btn-accent" onclick="navigate('inventory')"><svg class="ui-icon" aria-hidden="true"><use href="icons.svg#icon-clipboard"></use></svg> إدخال جرد جديد</button>
+            <button class="btn btn-outline" onclick="seedDemoData()"><svg class="ui-icon" aria-hidden="true"><use href="icons.svg#icon-sparkles"></use></svg> بيانات تجريبية</button>
+          </div>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon blue"><svg class="ui-icon" aria-hidden="true"><use href="icons.svg#icon-tag"></use></svg></div>
+            <div class="stat-info">
+              <div class="stat-value" id="stat-items-count">0</div>
+              <div class="stat-label">إجمالي الأصناف</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon gold"><svg class="ui-icon" aria-hidden="true"><use href="icons.svg#icon-clipboard"></use></svg></div>
+            <div class="stat-info">
+              <div class="stat-value" id="stat-records-count">0</div>
+              <div class="stat-label">سجلات الجرد</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon green"><svg class="ui-icon" aria-hidden="true"><use href="icons.svg#icon-upload"></use></svg></div>
+            <div class="stat-info">
+              <div class="stat-value" id="stat-disbursement-count">0</div>
+              <div class="stat-label">أذونات الصرف</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon red"><svg class="ui-icon" aria-hidden="true"><use href="icons.svg#icon-calendar"></use></svg></div>
+            <div class="stat-info">
+              <div class="stat-value" id="stat-today-status" style="font-size:1rem;">قيد المتابعة</div>
+              <div class="stat-label">جرد اليوم</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h3>آخر سجلات الجرد</h3>
+            <button class="btn btn-sm btn-outline" onclick="navigate('archive')">عرض الكل ←</button>
+          </div>
+          <div class="card-body no-pad">
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>التاريخ</th>
+                    <th>المستخدم</th>
+                    <th>عدد الأصناف</th>
+                    <th>إجمالي الرصيد</th>
+                    <th>إجراء</th>
+                  </tr>
+                </thead>
+                <tbody id="recent-inventory-tbody">
+                  <tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text-muted);">جارٍ التحميل...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;margin-top:6px;">
+          <div class="card" style="cursor:pointer;margin:0;" onclick="navigate('inventory')">
+            <div class="card-body" style="text-align:center;padding:20px;">
+              <div style="font-size:2rem;margin-bottom:8px;"><svg class="ui-icon ui-icon-xl" aria-hidden="true"><use href="icons.svg#icon-clipboard"></use></svg></div>
+              <div style="font-weight:700;color:var(--primary);">إدخال جرد اليوم</div>
+              <div style="font-size:0.78rem;color:var(--text-muted);margin-top:4px;">تسجيل أرصدة الأصناف اليومية</div>
+            </div>
+          </div>
+          <div class="card" style="cursor:pointer;margin:0;" onclick="navigate('disbursement')">
+            <div class="card-body" style="text-align:center;padding:20px;">
+              <div style="font-size:2rem;margin-bottom:8px;"><svg class="ui-icon ui-icon-xl" aria-hidden="true"><use href="icons.svg#icon-upload"></use></svg></div>
+              <div style="font-weight:700;color:var(--primary);">إذن صرف جديد</div>
+              <div style="font-size:0.78rem;color:var(--text-muted);margin-top:4px;">تسجيل المنصرفات من المخزن</div>
+            </div>
+          </div>
+          <div class="card" style="cursor:pointer;margin:0;" onclick="navigate('archive')">
+            <div class="card-body" style="text-align:center;padding:20px;">
+              <div style="font-size:2rem;margin-bottom:8px;"><svg class="ui-icon ui-icon-xl" aria-hidden="true"><use href="icons.svg#icon-archive"></use></svg></div>
+              <div style="font-weight:700;color:var(--primary);">أرشيف التقارير</div>
+              <div style="font-size:0.78rem;color:var(--text-muted);margin-top:4px;">عرض الجرود السابقة</div>
+            </div>
+          </div>
+          <div class="card" style="cursor:pointer;margin:0;" onclick="navigate('items')">
+            <div class="card-body" style="text-align:center;padding:20px;">
+              <div style="font-size:2rem;margin-bottom:8px;"><svg class="ui-icon ui-icon-xl" aria-hidden="true"><use href="icons.svg#icon-tag"></use></svg></div>
+              <div style="font-weight:700;color:var(--primary);">إدارة الأصناف</div>
+              <div style="font-size:0.78rem;color:var(--text-muted);margin-top:4px;">إضافة وتعديل الأصناف</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- =========================================
+           PAGE: INVENTORY ENTRY
+           ========================================= -->
+      <div class="page" id="page-inventory">
+        <div class="page-header">
+          <div class="page-header-text">
+            <h2>إدخال الجرد اليومي</h2>
+            <p>يتم ترحيل رصيد آخر جرد مُدخل تلقائياً كرصيد أول للإدخال التالي</p>
+          </div>
+          <div class="page-actions">
+            <button class="btn btn-success" onclick="saveInventoryRecord()"><svg class="ui-icon" aria-hidden="true"><use href="icons.svg#icon-save"></use></svg> حفظ الجرد</button>
+            <button class="btn btn-outline" onclick="loadInventoryEntry()"><svg class="ui-icon" aria-hidden="true"><use href="icons.svg#icon-refresh"></use></svg> تحديث</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><h3>بيانات الجرد</h3></div>
+          <div class="card-body">
+            <div class="form-grid">
+              <div class="form-group">
+                <label>التاريخ <span class="required">*</span></label>
+                <input type="date" id="inv-date" />
+              </div>
+              <div class="form-group">
+                <label>اسم المستخدم / مدخل البيانات <span class="required">*</span></label>
+                <select id="inv-user">
+                  <option value="">-- اختر المستخدم --</option>
+                </select>
+              </div>
+              <div class="form-group full">
+                <label>ملاحظات</label>
+                <input type="text" id="inv-notes" placeholder="ملاحظات إضافية (اختياري)" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><h3>نظام تبادل الملفات</h3></div>
+          <div class="card-body">
+            <div class="alert alert-info" style="margin-bottom:12px;">
+              يعمل هذا القسم على مرحلتين: تصدير جرد فقط للموظف الآخر، ثم استيراد ملف الجرد لاستكمال بيانات الصرف.
+            </div>
+            <div class="form-grid">
+              <div class="form-group">
+                <label>تصدير جرد فقط (CSV مؤقت)</label>
+                <button class="btn btn-outline" onclick="exportInventoryOnlyCSV()"><svg class="ui-icon" aria-hidden="true"><use href="icons.svg#icon-download"></use></svg> تصدير الجرد المحدد</button>
+              </div>
+              <div class="form-group">
+                <label>استيراد ملف الجرد (CSV)</label>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                  <input type="file" id="inventory-import-file" accept=".csv,text/csv" />
+                  <button class="btn btn-primary" onclick="importInventoryCSV()"><svg class="ui-icon" aria-hidden="true"><use href="icons.svg#icon-upload"></use></svg> استيراد الملف</button>
+                </div>
+              </div>
+              <div class="form-group">
+                <label>تاريخ التقرير النهائي</label>
+                <input type="date" id="final-export-date" />
+              </div>
+              <div class="form-group">
+                <label>تصدير التقرير النهائي</label>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                  <button class="btn btn-outline" onclick="exportFinalReport('csv')"><svg class="ui-icon" aria-hidden="true"><use href="icons.svg#icon-document"></use></svg> CSV نهائي</button>
+                  <button class="btn btn-outline" onclick="exportFinalReport('excel')"><svg class="ui-icon" aria-hidden="true"><use href="icons.svg#icon-table"></use></svg> Excel نهائي</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h3>تفاصيل الأصناف</h3>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+              <label style="display:flex;align-items:center;gap:6px;font-size:0.82rem;cursor:pointer;">
+                <input type="checkbox" id="inv-show-zero" checked /> إظهار الأصناف بالرصيد الصفري
+              </label>
+            </div>
+          </div>
+          <div class="filter-bar">
+            <div class="search-wrapper">
+              <span class="search-icon"><svg class="ui-icon" aria-hidden="true"><use href="icons.svg#icon-search"></use></svg></span>
+              <input type="search" id="inv-search" placeholder="بحث في الأصناف..." />
+            </div>
+            <select id="inv-filter-type" style="max-width:160px;">
+              <option value="">كل الأنواع</option>
+              <option value="تمري">تمري</option>
+              <option value="دقهلية">دقهلية</option>
+              <option value="استيكرات">استيكرات</option>
+              <option value="الاطباق">أطباق</option>
+              <option value="المتبل">متبل</option>
+            </select>
+          </div>
+          <div class="card-body no-pad">
+            <div class="table-wrapper">
+              <table class="inventory-entry-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>الصنف</th>
+                    <th>النوع</th>
+                    <th>رصيد أول الوردية</th>
+                    <th>الوارد</th>
+                    <th>المنصرف</th>
+                    <th>رصيد آخر الوردية</th>
+                  </tr>
+                </thead>
+                <tbody id="inv-entry-tbody">
+                  <tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text-muted);">يرجى الانتظار أو إضافة أصناف أولاً من صفحة "إدارة الأصناف"</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;justify-content:flex-end;gap:10px;padding-top:8px;">
+          <button class="btn btn-success" onclick="saveInventoryRecord()"><svg class="ui-icon" aria-hidden="true"><use href="icons.svg#icon-save"></use></svg> حفظ الجرد</button>
+        </div>
+      </div>
+
+      <!-- =========================================
+           PAGE: DISBURSEMENT
+           ========================================= -->
+      <div class="page" id="page-disbursement">
+        <div class="page-header">
+          <div class="page-header-text">
+            <h2>إذن الصرف</h2>
+            <p>تسجيل الكميات المنصرفة من المخزن يومياً</p>
+          </div>
+          <div class="page-actions">
+            <button class="btn btn-success" onclick="saveDisbursement()"><svg class="ui-icon" aria-hidden="true"><use href="icons.svg#icon-save"></use></svg> حفظ إذن الصرف</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><h3>بيانات إذن الصرف</h3></div>
+          <div class="card-body">
+            <div class="form-grid">
+              <div class="form-group">
+                <label>رقم الإذن</label>
+                <input type="text" id="disb-ref" readonly style="background:var(--bg-main);font-weight:700;color:var(--primary);" />
+              </div>
+              <div class="form-group">
+                <label>رقم طلب الصرف</label>
+                <input type="text" id="disb-request-num" placeholder="مثال: PR-2026-0145" />
+              </div>
+              <div class="form-group">
+                <label>التاريخ <span class="required">*</span></label>
+                <input type="date" id="disb-date" />
+              </div>
+              <div class="form-group">
+                <label>المستخدم <span class="required">*</span></label>
+                <select id="disb-user">
+                  <option value="">-- اختر المستخدم --</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>اسم المخزن</label>
+                <select id="disb-warehouse">
+                  <option value="">-- اختر المخزن --</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>جهة الصرف</label>
+                <input type="text" id="disb-destination" placeholder="مثال: المطبخ، الفرع الرئيسي..." />
+              </div>
+              <div class="form-group full">
+                <label>ملاحظات</label>
+                <input type="text" id="disb-notes" placeholder="ملاحظات إضافية (اختياري)" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><h3>الأصناف المنصرفة</h3></div>
+          <div class="card-body no-pad">
+            <div class="table-wrapper">
+              <table class="inventory-entry-table">
+                <thead>
+                  <tr>
+                    <th>الصنف</th>
+                    <th>النوع</th>
+                    <th>الكمية المنصرفة</th>
+                    <th>ملاحظة</th>
+                  </tr>
+                </thead>
+                <tbody id="disb-items-tbody">
+                  <tr><td colspan="4" style="text-align:center;padding:24px;color:var(--text-muted);">جارٍ تحميل الأصناف...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;justify-content:flex-end;gap:10px;padding-top:8px;">
+          <button class="btn btn-success" onclick="saveDisbursement()"><svg class="ui-icon" aria-hidden="true"><use href="icons.svg#icon-save"></use></svg> حفظ إذن الصرف</button>
+        </div>
+
+        <div class="separator"></div>
+
+        <div class="card">
+          <div class="card-header"><h3>سجل أذونات الصرف السابقة</h3></div>
+          <div class="card-body no-pad">
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>رقم الإذن</th>
+                    <th>رقم طلب الصرف</th>
+                    <th>المخزن</th>
+                    <th>التاريخ</th>
+                    <th>المستخدم</th>
+                    <th>عدد الأصناف</th>
+                    <th>إجراء</th>
+                  </tr>
+                </thead>
+                <tbody id="disb-history-tbody">
+                  <tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-muted);">لا يوجد سجل</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- =========================================
+           PAGE: ARCHIVE
+           ========================================= -->
+      <div class="page" id="page-archive">
+        <div class="page-header">
+          <div class="page-header-text">
+            <h2>أرشيف الجرود</h2>
+            <p>عرض وتصفح سجلات الجرد السابقة</p>
+          </div>
+          <div class="page-actions">
+            <button class="btn btn-outline" onclick="loadArchive()"><svg class="ui-icon" aria-hidden="true"><use href="icons.svg#icon-refresh"></use></svg> تحديث</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="filter-bar">
+            <div class="search-wrapper">
+              <span class="search-icon"><svg class="ui-icon" aria-hidden="true"><use href="icons.svg#icon-search"></use></svg></span>
+              <input type="search" id="archive-search" placeholder="بحث بالتاريخ أو المستخدم..." />
+            </div>
+            <input type="date" id="archive-filter-date" style="max-width:180px;" />
+            <input type="month" id="archive-export-month" style="max-width:170px;" />
+            <button class="btn btn-sm btn-outline" type="button" onclick="exportMonthlyInventoryReport('csv')"><svg class="ui-icon" aria-hidden="true"><use href="icons.svg#icon-document"></use></svg> استخراج شهري CSV</button>
+            <button class="btn btn-sm btn-outline" type="button" onclick="exportMonthlyInventoryReport('excel')"><svg class="ui-icon" aria-hidden="true"><use href="icons.svg#icon-table"></use></svg> استخراج شهري Excel</button>
+            <button class="btn btn-sm btn-outline" onclick="document.getElementById('archive-search').value='';document.getElementById('archive-filter-date').value='';state.archiveSearchTerm='';state.archiveFilterDate='';loadArchive();">مسح الفلتر</button>
+          </div>
+        </div>
+
+        <div class="archive-grid" id="archive-grid">
+          <div class="empty-state" style="grid-column:1/-1;">
+            <svg class="ui-icon" aria-hidden="true"><use href="icons.svg#icon-folder-open"></use></svg>
+            <h3>لا توجد سجلات</h3>
+            <p>ابدأ بإدخال جرد يومي لعرضه هنا</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- =========================================
+           PAGE: ITEMS MANAGEMENT
+           ========================================= -->
+      <div class="page" id="page-items">
+        <div class="page-header">
+          <div class="page-header-text">
+            <h2>إدارة الأصناف</h2>
+            <p>إضافة وتعديل وإدارة أصناف المخزون</p>
+          </div>
+          <div class="page-actions">
+            <button class="btn btn-primary" onclick="openAddItemModal()"><svg class="ui-icon" aria-hidden="true"><use href="icons.svg#icon-plus"></use></svg> إضافة صنف</button>
+            <button class="btn btn-outline" onclick="document.getElementById('bulk-import-card').scrollIntoView({behavior:'smooth'})"><svg class="ui-icon" aria-hidden="true"><use href="icons.svg#icon-upload"></use></svg> استيراد جماعي</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h3>قائمة الأصناف</h3>
+            <span id="items-count-label" class="badge badge-primary">0 صنف</span>
+          </div>
+          <div class="filter-bar">
+            <div class="search-wrapper">
+              <span class="search-icon"><svg class="ui-icon" aria-hidden="true"><use href="icons.svg#icon-search"></use></svg></span>
+              <input type="search" id="items-search" placeholder="بحث..." />
+            </div>
+            <select id="items-filter-type" style="max-width:160px;">
+              <option value="">كل الأنواع</option>
+              <option value="تمري">تمري</option>
+              <option value="دقهلية">دقهلية</option>
+              <option value="استيكرات">استيكرات</option>
+              <option value="الاطباق">أطباق</option>
+              <option value="المتبل">متبل</option>
+            </select>
+          </div>
+          <div class="card-body no-pad">
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr><th>#</th><th>اسم الصنف</th><th>النوع</th><th>الحالة</th><th>إجراء</th></tr>
+                </thead>
+                <tbody id="items-tbody">
+                  <tr><td colspan="5" style="text-align:center;padding:28px;color:var(--text-muted);">جارٍ التحميل...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" id="bulk-import-card">
+          <div class="card-header"><h3>الاستيراد الجماعي للأصناف</h3></div>
+          <div class="card-body">
+            <div class="alert alert-info">
+              ألصق قائمة الأصناف في الحقل أدناه (صنف واحد في كل سطر). يمكنك فصل النوع بمسافة TAB.
+            </div>
+            <div class="form-group" style="margin-bottom:12px;">
+              <label>قائمة الأصناف (سطر لكل صنف)</label>
+              <textarea id="bulk-import-text" rows="10" placeholder="كيس تمري مجمد فرخة 750-800&#10;كيس تمري مجمد فرخة 800-850&#10;كيس الدقهلية للمجازر دجاج محمد 900-950جم&#10;..." style="font-size:0.88rem;"></textarea>
+            </div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
+              <button class="btn btn-primary" onclick="parseBulkImport()"><svg class="ui-icon" aria-hidden="true"><use href="icons.svg#icon-search"></use></svg> معاينة الاستيراد</button>
+              <button class="btn btn-outline" onclick="document.getElementById('bulk-import-text').value='';document.getElementById('bulk-preview').innerHTML=''"><svg class="ui-icon" aria-hidden="true"><use href="icons.svg#icon-trash"></use></svg> مسح</button>
+            </div>
+            <div id="bulk-preview"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- =========================================
+           PAGE: SETTINGS
+           ========================================= -->
+      <div class="page" id="page-settings">
+        <div class="page-header">
+          <div class="page-header-text">
+            <h2>الإعدادات</h2>
+            <p>تخصيص إعدادات النظام والمستخدمين</p>
+          </div>
+          <div class="page-actions">
+            <button class="btn btn-primary" onclick="saveSettings()"><svg class="ui-icon" aria-hidden="true"><use href="icons.svg#icon-save"></use></svg> حفظ الإعدادات</button>
+          </div>
+        </div>
+
+        <div class="settings-shell">
+          <div class="card settings-lock-panel" id="settings-lock-panel">
+            <div class="card-header"><h3>حماية الإعدادات</h3></div>
+            <div class="card-body settings-lock-body">
+              <div class="settings-lock-title">
+                <svg class="ui-icon" aria-hidden="true"><use href="icons.svg#icon-shield-lock"></use></svg>
+                <span>الإعدادات مقفلة بكلمة مرور المطور</span>
+              </div>
+              <div class="security-note">
+                لا يمكن تعديل الإعدادات إلا بإذن كتابي من المطور. كلمة المرور مطلوبة قبل الوصول إلى خيارات العرض والنسخ الاحتياطي ومنطقة الخطر.
+              </div>
+              <div class="settings-password-form">
+                <input type="password" id="settings-password-input" placeholder="أدخل كلمة المرور" inputmode="numeric" autocomplete="off" />
+                <button class="btn btn-primary" type="button" onclick="unlockSettings()"><svg class="ui-icon" aria-hidden="true"><use href="icons.svg#icon-lock"></use></svg> فتح الإعدادات</button>
+              </div>
+              <p class="settings-lock-hint">تم ضبط كلمة المرور الحالية لحماية الإعدادات من أي تعديل غير مصرح به داخل نفس الجهاز أو نسخة الهاتف.</p>
+            </div>
+          </div>
+
+          <div id="settings-content" class="hidden">
+        <div class="settings-grid">
+          <div class="card" style="margin:0;">
+            <div class="card-header"><h3>إعدادات العرض</h3></div>
+            <div class="card-body">
+              <div class="setting-item">
+                <div>
+                  <div class="setting-label">حجم الخط</div>
+                  <div class="setting-desc">حجم خط واجهة البرنامج</div>
+                </div>
+                <div class="setting-control" style="display:flex;align-items:center;gap:8px;">
+                  <span id="setting-font-size-display" style="font-size:0.8rem;color:var(--text-muted);font-weight:600;">15px</span>
+                  <input type="range" id="setting-font-size" min="12" max="20" value="15" style="width:100px;" />
+                </div>
+              </div>
+              <div class="setting-item">
+                <div>
+                  <div class="setting-label">نوع الخط</div>
+                  <div class="setting-desc">خط واجهة البرنامج الرئيسية</div>
+                </div>
+                <div class="setting-control">
+                  <select id="setting-font-family" style="max-width:140px;">
+                    <option value="Cairo">Cairo</option>
+                    <option value="Tajawal">Tajawal</option>
+                  </select>
+                </div>
+              </div>
+              <div class="setting-item">
+                <div>
+                  <div class="setting-label">ثيم البرنامج</div>
+                  <div class="setting-desc">تحسين خفيف لشكل الواجهة بدون تغيير ضخم على التصميم</div>
+                </div>
+                <div class="setting-control">
+                  <select id="setting-theme" style="max-width:160px;">
+                    <option value="light">الافتراضي</option>
+                    <option value="forest">أخضر احترافي</option>
+                    <option value="sand">رملي هادئ</option>
+                  </select>
+                </div>
+              </div>
+              <div class="setting-item">
+                <div>
+                  <div class="setting-label">ترحيل الرصيد تلقائياً</div>
+                  <div class="setting-desc">نقل رصيد آخر جرد مُدخل كرصيد أول للإدخال التالي</div>
+                </div>
+                <div class="setting-control">
+                  <div class="toggle on" id="setting-auto-carry"></div>
+                </div>
+              </div>
+              <div class="setting-item">
+                <div>
+                  <div class="setting-label">إظهار الأصناف الصفرية</div>
+                  <div class="setting-desc">عرض الأصناف ذات الرصيد الصفري في الجرد</div>
+                </div>
+                <div class="setting-control">
+                  <div class="toggle on" id="setting-show-zero"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card" style="margin:0;">
+            <div class="card-header"><h3>إدارة المستخدمين</h3></div>
+            <div class="card-body">
+              <div style="display:grid;grid-template-columns:1fr auto;gap:8px;margin-bottom:14px;">
+                <input type="text" id="new-user-name" placeholder="اسم المستخدم الجديد" />
+                <button class="btn btn-primary" onclick="addUser()"><svg class="ui-icon" aria-hidden="true"><use href="icons.svg#icon-plus"></use></svg> إضافة</button>
+              </div>
+              <div id="users-list">
+                <div class="empty-state" style="padding:28px;">
+                  <svg class="ui-icon" aria-hidden="true"><use href="icons.svg#icon-users"></use></svg>
+                  <h3>لا يوجد مستخدمون</h3>
+                  <p>أضف مستخدمين لتسجيل عمليات الجرد</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card" style="margin:0;">
+            <div class="card-header"><h3>النسخ الاحتياطي والاستعادة</h3></div>
+            <div class="card-body">
+              <div class="setting-item">
+                <div>
+                  <div class="setting-label">أخذ نسخة احتياطية</div>
+                  <div class="setting-desc">حفظ كل بيانات النظام في ملف JSON على جهازك</div>
+                </div>
+                <button class="btn btn-outline" onclick="exportSystemBackup()"><svg class="ui-icon" aria-hidden="true"><use href="icons.svg#icon-download"></use></svg> أخذ نسخة</button>
+              </div>
+              <div class="setting-item">
+                <div>
+                  <div class="setting-label">استعادة نسخة احتياطية</div>
+                  <div class="setting-desc">استرجاع البيانات من ملف نسخة احتياطية سبق تصديره</div>
+                </div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                  <button class="btn btn-primary" type="button" onclick="triggerBackupRestore()"><svg class="ui-icon" aria-hidden="true"><use href="icons.svg#icon-upload"></use></svg> اختيار ملف الاستعادة</button>
+                  <button class="btn btn-outline" type="button" onclick="downloadEmergencyBackup()"><svg class="ui-icon" aria-hidden="true"><use href="icons.svg#icon-phone"></use></svg> تحميل نقطة إنقاذ الجهاز</button>
+                </div>
+              </div>
+              <div class="settings-card-note">
+                <svg class="ui-icon" aria-hidden="true"><use href="icons.svg#icon-phone"></use></svg>
+                <span>يتم حفظ نقطة إنقاذ محلية تلقائياً قبل الاستعادة أو المسح للحفاظ على نسخة الهاتف الحالية.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="separator"></div>
+
+        <div class="card" style="border:1.5px solid rgba(192,57,43,0.25);">
+          <div class="card-header" style="background:rgba(192,57,43,0.05);">
+            <h3 style="color:var(--danger);">منطقة الخطر</h3>
+          </div>
+          <div class="card-body">
+            <div class="setting-item">
+              <div>
+                <div class="setting-label" style="color:var(--danger);">حذف جميع البيانات</div>
+                <div class="setting-desc">سيتم حذف كل الأصناف والسجلات والإعدادات نهائياً</div>
+              </div>
+              <button class="btn btn-danger" onclick="resetDatabase()"><svg class="ui-icon" aria-hidden="true"><use href="icons.svg#icon-trash"></use></svg> مسح قاعدة البيانات</button>
+            </div>
+          </div>
+        </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- =========================================
+           PAGE: ABOUT
+           ========================================= -->
+      <div class="page" id="page-about">
+        <div class="about-hero">
+          <div class="about-hero-title">
+            <svg class="ui-icon" aria-hidden="true"><use href="icons.svg#icon-box"></use></svg>
+            <span>نظام إدارة المخزون</span>
+          </div>
+          <p>نظام متكامل لإدارة الجرد اليومي وأذونات الصرف والتقارير مع دعم التثبيت كتطبيق والعمل دون اتصال.</p>
+          <div class="version-badge">الإصدار 1.1.0 - نسخة تشغيلية محسنة</div>
+          <div class="about-hero-actions">
+            <button class="btn btn-accent install-btn" id="install-app-btn" type="button" hidden>
+              <svg class="ui-icon" aria-hidden="true"><use href="icons.svg#icon-install"></use></svg>
+              <span>تثبيت التطبيق</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><h3>عن النظام</h3></div>
+          <div class="card-body">
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;">
+              <div>
+                <div class="setting-item"><div class="setting-label">اسم البرنامج</div><div style="font-weight:700;color:var(--primary);">نظام إدارة المخزون</div></div>
+                <div class="setting-item"><div class="setting-label">الإصدار</div><div style="font-weight:700;">1.1.0</div></div>
+                <div class="setting-item"><div class="setting-label">قاعدة البيانات</div><div style="font-weight:700;">IndexedDB (محلية)</div></div>
+                <div class="setting-item"><div class="setting-label">فريق التطوير</div><div style="font-weight:700;">زياد، يحيى، زكريا، أحمد</div></div>
+                <div class="setting-item"><div class="setting-label">الشراكة</div><div style="font-weight:700;">وفريق من منظمة البرمجيات مفتوح المصدر</div></div>
+              </div>
+              <div>
+                <p style="font-size:0.88rem;color:var(--text-secondary);line-height:2;border-right:3px solid var(--accent);padding-right:14px;">
+                  هذا النظام مصمم لإدارة جرد المخازن اليومي مع تحسينات تشغيلية عملية: قفل الإعدادات بكلمة مرور، استخراج شهري للجرد، حماية نسخة الهاتف عبر نقطة إنقاذ محلية، وطباعة أكثر استقراراً. كما يدعم التثبيت كتطبيق PWA والعمل دون اتصال بعد أول تحميل ناجح.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><h3>التقنيات المستخدمة</h3></div>
+          <div class="card-body">
+            <div class="libs-grid">
+              <div class="lib-card"><div class="lib-name">IndexedDB</div><div class="lib-version">Web API - Native (V8)</div><div class="lib-desc">قاعدة بيانات محلية في المتصفح</div></div>
+              <div class="lib-card"><div class="lib-name">Vanilla JavaScript</div><div class="lib-version">ES2022+</div><div class="lib-desc">JS نقي بدون أطر عمل خارجية</div></div>
+              <div class="lib-card"><div class="lib-name">Google Fonts</div><div class="lib-version">Cairo & Tajawal</div><div class="lib-desc">خطوط عربية احترافية</div></div>
+              <div class="lib-card"><div class="lib-name">CSS Variables + Grid</div><div class="lib-version">CSS3</div><div class="lib-desc">تصميم متجاوب واحترافي</div></div>
+              <div class="lib-card"><div class="lib-name">Blob API</div><div class="lib-version">Web API</div><div class="lib-desc">تصدير البيانات والنسخ الاحتياطية</div></div>
+              <div class="lib-card"><div class="lib-name">PWA + Service Worker</div><div class="lib-version">Web Platform</div><div class="lib-desc">تثبيت التطبيق والعمل دون اتصال</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><h3>مميزات النظام</h3></div>
+          <div class="card-body">
+            <div class="feature-highlight-grid">
+              <div class="feature-highlight"><div class="feature-highlight-title"><svg class="ui-icon" aria-hidden="true"><use href="icons.svg#icon-check-circle"></use></svg><span>ترحيل تلقائي للأرصدة</span></div><div style="font-size:0.82rem;color:var(--text-secondary);">رصيد آخر جرد مُدخل يُرحّل تلقائياً كرصيد أول للإدخال التالي.</div></div>
+              <div class="feature-highlight"><div class="feature-highlight-title"><svg class="ui-icon" aria-hidden="true"><use href="icons.svg#icon-shield-lock"></use></svg><span>قفل الإعدادات</span></div><div style="font-size:0.82rem;color:var(--text-secondary);">الإعدادات الحساسة محمية بكلمة مرور المطور لمنع أي لعب غير مصرح به.</div></div>
+              <div class="feature-highlight"><div class="feature-highlight-title"><svg class="ui-icon" aria-hidden="true"><use href="icons.svg#icon-table"></use></svg><span>استخراج شهري للجرد</span></div><div style="font-size:0.82rem;color:var(--text-secondary);">إخراج شهري CSV وExcel لتجميع كل سجلات الجرد خلال الشهر المحدد.</div></div>
+              <div class="feature-highlight"><div class="feature-highlight-title"><svg class="ui-icon" aria-hidden="true"><use href="icons.svg#icon-phone"></use></svg><span>حماية نسخة الهاتف</span></div><div style="font-size:0.82rem;color:var(--text-secondary);">إنشاء نقطة إنقاذ محلية قبل الاستعادة أو المسح للحفاظ على نسخة الجهاز الحالية.</div></div>
+              <div class="feature-highlight"><div class="feature-highlight-title"><svg class="ui-icon" aria-hidden="true"><use href="icons.svg#icon-install"></use></svg><span>تثبيت كتطبيق</span></div><div style="font-size:0.82rem;color:var(--text-secondary);">يمكن تثبيت النظام كتطبيق ويب تقدمي على الأجهزة المدعومة.</div></div>
+              <div class="feature-highlight"><div class="feature-highlight-title"><svg class="ui-icon" aria-hidden="true"><use href="icons.svg#icon-offline"></use></svg><span>تشغيل دون اتصال</span></div><div style="font-size:0.82rem;color:var(--text-secondary);">الواجهة وملفات التطبيق الأساسية تبقى متاحة بعد أول زيارة ناجحة للموقع.</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- end page-content -->
+  </div><!-- end main-content -->
+</div><!-- end app-wrapper -->
+
+<!-- ===== MODALS ===== -->
+<div class="modal-overlay" id="item-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="item-modal-title">إضافة صنف جديد</h3>
+      <button class="modal-close" onclick="closeModal('item-modal')" aria-label="إغلاق">
+        <svg class="ui-icon" aria-hidden="true"><use href="icons.svg#icon-x-circle"></use></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group" style="margin-bottom:14px;">
+        <label>اسم الصنف <span class="required">*</span></label>
+        <input type="text" id="item-name-input" placeholder="أدخل اسم الصنف..." />
+      </div>
+      <div class="form-group">
+        <label>النوع <span class="required">*</span></label>
+        <select id="item-type-input">
+          <option value="تمري">تمري</option>
+          <option value="دقهلية">دقهلية</option>
+          <option value="استيكرات">استيكرات</option>
+          <option value="الاطباق">الأطباق</option>
+          <option value="المتبل">المتبل</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('item-modal')">إلغاء</button>
+      <button class="btn btn-primary" onclick="saveItem()"><svg class="ui-icon" aria-hidden="true"><use href="icons.svg#icon-save"></use></svg> حفظ</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="view-modal" style="align-items:flex-start;padding-top:40px;">
+  <div class="modal" style="max-width:800px;">
+    <div class="modal-header">
+      <h3 id="view-modal-title">عرض التفاصيل</h3>
+      <button class="modal-close" onclick="closeModal('view-modal')" aria-label="إغلاق">
+        <svg class="ui-icon" aria-hidden="true"><use href="icons.svg#icon-x-circle"></use></svg>
+      </button>
+    </div>
+    <div class="modal-body" id="view-modal-body"></div>
+  </div>
+</div>
+
+<input type="file" id="backup-restore-file" class="visually-hidden" accept=".json,application/json" />
+
+<script>
+  document.getElementById('today-date-display').textContent = new Date().toLocaleDateString('ar-EG', {
+    weekday: 'short', year: 'numeric', month: 'long', day: 'numeric'
+  });
+</script>
+<script src="app.js"></script>
+</body>
+</html>
